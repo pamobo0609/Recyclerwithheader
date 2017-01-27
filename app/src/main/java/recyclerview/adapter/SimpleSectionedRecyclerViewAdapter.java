@@ -1,12 +1,14 @@
 package recyclerview.adapter;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.pamobo0609.R;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -17,24 +19,15 @@ import java.util.Comparator;
 
 public class SimpleSectionedRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private final Context mContext;
     private static final int SECTION_TYPE = 0;
 
     private boolean mValid = true;
-    private int mSectionResourceId;
-    private int mTextResourceId;
-    private LayoutInflater mLayoutInflater;
     private RecyclerView.Adapter mBaseAdapter;
-    private SparseArray<Section> mSections = new SparseArray<Section>();
+    private SparseArray<Section> mSections = new SparseArray<>();
 
-    public SimpleSectionedRecyclerViewAdapter(Context context, int sectionResourceId, int textResourceId,
-                                              RecyclerView.Adapter baseAdapter) {
+    public SimpleSectionedRecyclerViewAdapter(RecyclerView.Adapter baseAdapter) {
 
-        mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        mSectionResourceId = sectionResourceId;
-        mTextResourceId = textResourceId;
         mBaseAdapter = baseAdapter;
-        mContext = context;
 
         mBaseAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
             @Override
@@ -63,22 +56,24 @@ public class SimpleSectionedRecyclerViewAdapter extends RecyclerView.Adapter<Rec
         });
     }
 
+    private class SectionViewHolder extends RecyclerView.ViewHolder {
 
-    public static class SectionViewHolder extends RecyclerView.ViewHolder {
+        final TextView title;
 
-        public TextView title;
+        final LinearLayout llHeader;
 
-        public SectionViewHolder(View view, int mTextResourceid) {
+         SectionViewHolder(View view) {
             super(view);
-            title = (TextView) view.findViewById(mTextResourceid);
+            title = (TextView) view.findViewById(R.id.txtv_separator);
+            llHeader = (LinearLayout) view.findViewById(R.id.ll_header);
         }
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int typeView) {
         if (typeView == SECTION_TYPE) {
-            final View view = LayoutInflater.from(mContext).inflate(mSectionResourceId, parent, false);
-            return new SectionViewHolder(view,mTextResourceId);
+            final View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_separator, parent, false);
+            return new SectionViewHolder(view);
         }else{
             return mBaseAdapter.onCreateViewHolder(parent, typeView -1);
         }
@@ -86,9 +81,17 @@ public class SimpleSectionedRecyclerViewAdapter extends RecyclerView.Adapter<Rec
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder sectionViewHolder, int position) {
-        if (isSectionHeaderPosition(position)) {
-            ((SectionViewHolder)sectionViewHolder).title.setText(mSections.get(position).title);
-        }else{
+        // If the position is zero, it means we have to show the header instead of a section.
+        if (0 == position) {
+            ((SectionViewHolder) sectionViewHolder).title.setVisibility(View.GONE);
+            ((SectionViewHolder) sectionViewHolder).llHeader.setVisibility(View.VISIBLE);
+        }
+        // Otherwise, a section is shown.
+        else if (isSectionHeaderPosition(position)) {
+            ((SectionViewHolder) sectionViewHolder).title.setVisibility(View.VISIBLE);
+            ((SectionViewHolder) sectionViewHolder).llHeader.setVisibility(View.GONE);
+            ((SectionViewHolder) sectionViewHolder).title.setText(mSections.get(position).title);
+        } else {
             mBaseAdapter.onBindViewHolder(sectionViewHolder,sectionedPositionToPosition(position));
         }
 
@@ -112,9 +115,6 @@ public class SimpleSectionedRecyclerViewAdapter extends RecyclerView.Adapter<Rec
             this.title = title;
         }
 
-        public CharSequence getTitle() {
-            return title;
-        }
     }
 
 
@@ -140,18 +140,8 @@ public class SimpleSectionedRecyclerViewAdapter extends RecyclerView.Adapter<Rec
         notifyDataSetChanged();
     }
 
-    public int positionToSectionedPosition(int position) {
-        int offset = 0;
-        for (int i = 0; i < mSections.size(); i++) {
-            if (mSections.valueAt(i).firstPosition > position) {
-                break;
-            }
-            ++offset;
-        }
-        return position + offset;
-    }
 
-    public int sectionedPositionToPosition(int sectionedPosition) {
+    private int sectionedPositionToPosition(int sectionedPosition) {
         if (isSectionHeaderPosition(sectionedPosition)) {
             return RecyclerView.NO_POSITION;
         }
@@ -166,7 +156,7 @@ public class SimpleSectionedRecyclerViewAdapter extends RecyclerView.Adapter<Rec
         return sectionedPosition + offset;
     }
 
-    public boolean isSectionHeaderPosition(int position) {
+    private boolean isSectionHeaderPosition(int position) {
         return mSections.get(position) != null;
     }
 

@@ -36,4 +36,5 @@
     <string name="action_mark_all_read">Mark All as Read</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="msg_hello_from_the_recycler_header">Hello from the Recycler header!</string>
+    <string name="hello_from_header">Hello from header!</string>
 </resources>

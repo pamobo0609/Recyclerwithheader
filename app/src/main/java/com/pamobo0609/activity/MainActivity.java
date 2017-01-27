@@ -7,11 +7,10 @@ import android.support.v7.widget.RecyclerView;
 
 import com.pamobo0609.R;
 
-import manager.ContentManager;
-import recyclerview.adapter.SimpleAdapter;
-
 import java.util.ArrayList;
 
+import manager.ContentManager;
+import recyclerview.adapter.SimpleAdapter;
 import recyclerview.adapter.SimpleSectionedRecyclerViewAdapter;
 
 public class MainActivity extends AppCompatActivity {
@@ -26,32 +25,39 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         // To init all visual content
         getViews();
+        // Recycler init
+        setUpRecyclerView();
     }
 
     private void getViews() {
         mRecycler = (RecyclerView) findViewById(R.id.rv_list);
+    }
+
+    private void setUpRecyclerView() {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         mRecycler.setHasFixedSize(true);
         mRecycler.setLayoutManager(layoutManager);
 
-        //Your RecyclerView.Adapter
-        mAdapter = new SimpleAdapter(this, ContentManager.getInstance().getItems().toArray(new String[ContentManager.getInstance().getItems().size()]));
+        // This adapter has the RecyclerView's items.
+        mAdapter = new SimpleAdapter(ContentManager.getInstance().getItems());
 
         ArrayList<SimpleSectionedRecyclerViewAdapter.Section> sections =
                 new ArrayList<>();
 
-        //Sections
-        sections.add(new SimpleSectionedRecyclerViewAdapter.Section(0, "Section 1"));
+        // Sections
+        // IMPORTANT: to add a header, we still need to add a section at the first position, which
+        // is zero.
+        sections.add(new SimpleSectionedRecyclerViewAdapter.Section(0, "HEADER"));
         sections.add(new SimpleSectionedRecyclerViewAdapter.Section(2, "Section 2"));
 
-        //Add your adapter to the sectionAdapter
+        // The sections adapter is going to fill the Recyclerview with sections, in the given positions
+        // of the sections array
         SimpleSectionedRecyclerViewAdapter.Section[] dummy = new SimpleSectionedRecyclerViewAdapter.Section[sections.size()];
         SimpleSectionedRecyclerViewAdapter mSectionedAdapter = new
-                SimpleSectionedRecyclerViewAdapter(this, R.layout.recycler_separator, R.id.txtv_separator, mAdapter);
+                SimpleSectionedRecyclerViewAdapter(mAdapter);
         mSectionedAdapter.setSections(sections.toArray(dummy));
 
-        //Apply this adapter to the RecyclerView
+        // Apply this adapter to the RecyclerView
         mRecycler.setAdapter(mSectionedAdapter);
-
     }
 }
